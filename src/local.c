@@ -1246,8 +1246,8 @@ new_server(int fd)
     server->recv_ctx->server    = server;
     server->send_ctx->server    = server;
 
-    server->e_ctx = ss_align(sizeof(cipher_ctx_t));
-    server->d_ctx = ss_align(sizeof(cipher_ctx_t));
+    server->e_ctx = ss_malloc(sizeof(cipher_ctx_t));
+    server->d_ctx = ss_malloc(sizeof(cipher_ctx_t));
     crypto->ctx_init(crypto->cipher, server->e_ctx, 1);
     crypto->ctx_init(crypto->cipher, server->d_ctx, 0);
 
@@ -1683,6 +1683,10 @@ main(int argc, char **argv)
         if (ipv6first == 0) {
             ipv6first = conf->ipv6_first;
         }
+        if (acl == 0) {
+            LOGI("initializing acl...");
+            acl = !init_acl(conf->acl);
+        }
     }
 
     if (remote_num == 0 || remote_port == NULL ||
@@ -2008,6 +2012,7 @@ _start_ss_local_server(profile_t profile, ss_local_callback callback, void *udat
     USE_LOGFILE(log);
 
     if (profile.acl != NULL) {
+        LOGI("initializing acl...");
         acl = !init_acl(profile.acl);
     }
 
