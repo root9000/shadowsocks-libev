@@ -1,5 +1,7 @@
 # shadowsocks-libev
 
+[![Build Status](https://travis-ci.com/shadowsocks/shadowsocks-libev.svg?branch=master)](https://travis-ci.com/shadowsocks/shadowsocks-libev) [![Snap Status](https://build.snapcraft.io/badge/shadowsocks/shadowsocks-libev.svg)](https://build.snapcraft.io/user/shadowsocks/shadowsocks-libev)
+
 ## Intro
 
 [Shadowsocks-libev](https://shadowsocks.org) is a lightweight secured SOCKS5
@@ -9,9 +11,7 @@ It is a port of [Shadowsocks](https://github.com/shadowsocks/shadowsocks)
 created by [@clowwindy](https://github.com/clowwindy), and maintained by
 [@madeye](https://github.com/madeye) and [@linusyang](https://github.com/linusyang).
 
-Current version: 3.2.3 | [Changelog](debian/changelog)
-
-Travis CI: [![Travis CI](https://travis-ci.org/shadowsocks/shadowsocks-libev.svg?branch=master)](https://travis-ci.org/shadowsocks/shadowsocks-libev)
+Current version: 3.3.0 | [Changelog](debian/changelog)
 
 ## Features
 
@@ -284,7 +284,7 @@ export MBEDTLS_VER=2.6.0
 wget https://tls.mbed.org/download/mbedtls-$MBEDTLS_VER-gpl.tgz
 tar xvf mbedtls-$MBEDTLS_VER-gpl.tgz
 pushd mbedtls-$MBEDTLS_VER
-make SHARED=1 CFLAGS=-fPIC
+make SHARED=1 CFLAGS="-O2 -fPIC"
 sudo make DESTDIR=/usr install
 popd
 sudo ldconfig
@@ -408,6 +408,13 @@ you may refer to the man pages of the applications, respectively.
                                   (not available in redir mode)
 
        [-b <local_address>]       Local address to bind.
+                                  For servers: Specify the local address to use 
+                                  while this server is making outbound 
+                                  connections to remote servers on behalf of the
+                                  clients.
+                                  For clients: Specify the local address to use 
+                                  while this client is making outbound 
+                                  connections to the server.
 
        [-u]                       Enable UDP relay.
                                   (TPROXY is required in redir mode)
@@ -419,7 +426,7 @@ you may refer to the man pages of the applications, respectively.
                                   for local port forwarding.
                                   (only available in tunnel mode)
 
-       [-6]                       Resovle hostname to IPv6 address first.
+       [-6]                       Resolve hostname to IPv6 address first.
 
        [-d <addr>]                Name servers for internal DNS resolver.
                                   (only available in server mode)
@@ -458,7 +465,7 @@ you may refer to the man pages of the applications, respectively.
 
 ## Transparent proxy
 
-The latest shadowsocks-libev has provided a *redir* mode. You can configure your Linux-based box or router to proxy all TCP traffic transparently, which is handy if you use a OpenWRT-powered router.
+The latest shadowsocks-libev has provided a *redir* mode. You can configure your Linux-based box or router to proxy all TCP traffic transparently, which is handy if you use an OpenWRT-powered router.
 
     # Create new chain
     iptables -t nat -N SHADOWSOCKS
@@ -495,28 +502,10 @@ The latest shadowsocks-libev has provided a *redir* mode. You can configure your
     # Start the shadowsocks-redir
     ss-redir -u -c /etc/config/shadowsocks.json -f /var/run/shadowsocks.pid
 
-## Shadowsocks over KCP
-
-It's quite easy to use shadowsocks and [KCP](https://github.com/skywind3000/kcp) together with [kcptun](https://github.com/xtaci/kcptun).
-
-The goal of shadowsocks over KCP is to provide a fully configurable, UDP based protocol to improve poor connections, e.g. a high packet loss 3G network.
-
-### Setup your server
-
-```bash
-server_linux_amd64 -l :21 -t 127.0.0.1:443 --crypt none --mtu 1200 --nocomp --mode normal --dscp 46 &
-ss-server -s 0.0.0.0 -p 443 -k passwd -m chacha20 -u
-```
-
-### Setup your client
-
-```bash
-client_linux_amd64 -l 127.0.0.1:1090 -r <server_ip>:21 --crypt none --mtu 1200 --nocomp --mode normal --dscp 46 &
-ss-local -s 127.0.0.1 -p 1090 -k passwd -m chacha20 -l 1080 -b 0.0.0.0 &
-ss-local -s <server_ip> -p 443 -k passwd -m chacha20 -l 1080 -U -b 0.0.0.0
-```
 
 ## Security Tips
+
+For any public server, to avoid users accessing localhost of your server, please add `--acl acl/server_block_local.acl` to the command line.
 
 Although shadowsocks-libev can handle thousands of concurrent connections nicely, we still recommend
 setting up your server's firewall rules to limit connections from each user:

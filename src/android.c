@@ -1,7 +1,7 @@
 /*
  * android.c - Setup IPC for shadowsocks-android
  *
- * Copyright (C) 2013 - 2018, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2019, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -97,7 +97,8 @@ extern char *stat_path;
 int
 send_traffic_stat(uint64_t tx, uint64_t rx)
 {
-    if (!stat_path) return 0;
+    if (!stat_path)
+        return 0;
     int sock;
     struct sockaddr_un addr;
 
